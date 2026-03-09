@@ -10,7 +10,8 @@ import {
 } from '@ant-design/icons';
 import { exportExcel } from '../api/exportApi';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
+
 
 const BULAN_OPTIONS = [
     { label: 'Januari', value: 1 },

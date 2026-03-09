@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Card, DatePicker, Select, Button, Space, Tag, message, Tooltip } from 'antd';
 import { ReloadOutlined, SearchOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { getAuditLogs, getActionTypes } from '../api/auditApi';
+import { getAuditLogs } from '../api/auditApi';
 import type { AuditLog, AuditFilters } from '../api/auditApi';
 import dayjs from 'dayjs';
 
@@ -107,7 +107,7 @@ const AuditHistory: React.FC = () => {
                     <div>
                         <div style={{ fontWeight: 500 }}>{record.user.name}</div>
                         <div style={{ fontSize: 11, opacity: 0.65 }}>{record.user.email}</div>
-                        <Tag size="small" color={record.user.role === 'SUPER_ADMIN' ? 'red' : 'blue'} style={{ marginTop: 2 }}>
+                        <Tag color={record.user.role === 'SUPER_ADMIN' ? 'red' : 'blue'} style={{ marginTop: 2 }}>
                             {record.user.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}
                         </Tag>
                     </div>

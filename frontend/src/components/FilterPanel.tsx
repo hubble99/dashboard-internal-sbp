@@ -188,8 +188,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                             size="large"
                             showSearch
                             optionFilterProp="label"
-                            value={filters.lembagaPenyedia}
-                            onChange={(v) => handleChange('lembagaPenyedia', v)}
+                            value={filters.jenisLembagaPenyedia}
+                            onChange={(v) => handleChange('jenisLembagaPenyedia', v)}
                             loading={loading}
                             style={{ width: 240 }}
                             options={options?.lembagaPenyedia.map((l) => ({ value: l.nama, label: l.nama }))}
@@ -197,22 +197,6 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     </Col>
                 )}
 
-                {showFields.includes('penggiat') && (
-                    <Col>
-                        <Select
-                            placeholder="Penggiat"
-                            allowClear
-                            size="large"
-                            showSearch
-                            optionFilterProp="label"
-                            value={filters.penggiat}
-                            onChange={(v) => handleChange('penggiat', v)}
-                            loading={loading}
-                            style={{ width: 240 }}
-                            options={options?.lembaga.map((l) => ({ value: l.nama, label: l.nama }))}
-                        />
-                    </Col>
-                )}
 
                 <Col>
                     <Button

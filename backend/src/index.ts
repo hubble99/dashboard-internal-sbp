@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import path from 'path';
 import dotenv from 'dotenv';
 import { config } from './config/env';
 import { authMiddleware } from './middleware/auth';
@@ -52,16 +51,6 @@ app.use('/api/v1/export', authMiddleware, exportRoutes);
 
 // Error handler
 app.use(errorHandler);
-
-// Serve frontend static files di production
-if (config.nodeEnv === 'production') {
-    const publicPath = path.join(__dirname, '..', 'public');
-    app.use(express.static(publicPath));
-    // SPA fallback: semua route non-API dikembalikan ke index.html
-    app.get('*', (_req, res) => {
-        res.sendFile(path.join(publicPath, 'index.html'));
-    });
-}
 
 app.listen(config.port, () => {
     console.log(`🚀 Server running on http://localhost:${config.port}`);

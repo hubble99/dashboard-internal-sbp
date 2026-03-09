@@ -1,0 +1,41 @@
+services:
+  # ─── PostgreSQL Database ──────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: sbp_postgres
+    restart: always
+    environment:
+      POSTGRES_DB:       sbp_dashboard
+      POSTGRES_USER:     sbp_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sbp_user -d sbp_dashboard"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Dashboard App (Backend + Frontend) ──────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sbp_dashboard
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV:          production
+      PORT:              8080
+      DATABASE_URL:      postgresql://sbp_user:${POSTGRES_PASSWORD}@postgres:5432/sbp_dashboard
+      JWT_SECRET:        ${JWT_SECRET}
+      CORS_ORIGINS:      ${CORS_ORIGINS:-http://localhost:8080}
+      MOCK_API_BASE_URL: http://localhost:8080/mock-api
+    ports:
+      - "${APP_PORT:-8080}:8080"
+
+volumes:
+  postgres_data:
+    driver: local

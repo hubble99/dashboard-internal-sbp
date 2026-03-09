@@ -1,0 +1,522 @@
+openapi: 3.0.3
+info:
+  title: SBP Developer API - Food Rescue Data Contract
+  description: |
+    API contract untuk sistem Sistem Bisnis Penyelamatan Pangan (SBP) yang akan menyediakan data untuk Dashboard Monitoring Badan Pangan Nasional.
+    
+    **Developer yang bertanggung jawab**: Tim Developer SBP App
+    
+    **Tujuan**: Menyediakan 4 endpoint API yang akan dipanggil oleh Dashboard BFF Backend untuk mengambil data real-time dari database SBP.
+    
+    ## Arsitektur
+    ```
+    [SBP Database] → [SBP API Server] → [Dashboard BFF Backend] → [Dashboard Frontend]
+    ```
+    
+    ## Authentication
+    - Semua endpoint harus dilindungi dengan API Key yang akan diberikan ke Dashboard Backend
+    - Header: `X-API-Key: <secret-key>`
+    
+    ## Response Format
+    Semua endpoint harus mengembalikan JSON dengan struktur:
+    ```json
+    {
+      "success": true,
+      "message": "string",
+      "data": [...] atau {...}
+    }
+    ```
+  version: 1.0.0
+  contact:
+    name: Tim Dashboard Badan Pangan Nasional
+    email: dashboard@bapanas.go.id
+
+servers:
+  - url: https://sbp-api.bapanas.go.id/v1
+    description: Production SBP API Server
+  - url: https://sbp-api-staging.bapanas.go.id/v1
+    description: Staging/Testing SBP API Server
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /penyelamatan-pangan:
+    get:
+      summary: Get data penyelamatan pangan (food rescue)
+      description: |
+        Endpoint untuk mengambil semua data transaksi penyelamatan pangan dari database SBP.
+        
+        **Table Required**: `fact_penyelamatan_pangan` atau sejenisnya
+        
+        Dashboard akan memanggil endpoint ini saat refresh data, lalu menyimpan hasil ke database lokal untuk agregasi dan filtering.
+      
+      tags:
+        - Data Endpoints
+      
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Data berhasil diambil"
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PenyelamatanPanganRecord'
+        
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /penyaluran-pangan:
+    get:
+      summary: Get data penyaluran pangan (food distribution)
+      description: |
+        Endpoint untuk mengambil semua data transaksi penyaluran pangan dari database SBP.
+        
+        **Table Required**: `fact_penyaluran_pangan` atau sejenisnya
+      
+      tags:
+        - Data Endpoints
+      
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PenyaluranPanganRecord'
+        
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /transaksi-mandiri:
+    get:
+      summary: Get data donasi mandiri (direct donations)
+      description: |
+        Endpoint untuk mengambil semua data transaksi donasi mandiri dari database SBP.
+        
+        **Table Required**: `fact_transaksi_mandiri_detail` atau sejenisnya
+      
+      tags:
+        - Data Endpoints
+      
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TransaksiMandiriRecord'
+        
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /penerima-manfaat:
+    get:
+      summary: Get data penerima manfaat (beneficiaries)
+      description: |
+        Endpoint untuk mengambil semua data penerima manfaat dari database SBP.
+        
+        **Table Required**: `fact_penerima_manfaat` atau sejenisnya
+      
+      tags:
+        - Data Endpoints
+      
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PenerimaManfaatRecord'
+        
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API Key untuk autentikasi Dashboard BFF Backend
+
+  schemas:
+    PenyelamatanPanganRecord:
+      type: object
+      required:
+        - id
+        - tanggal_salur
+        - tahun
+        - bulan
+        - lembaga_id
+        - lembaga_nama
+        - provinsi_id
+        - provinsi_nama
+        - kabupaten_id
+        - kabupaten_nama
+        - produk_donasi
+        - jumlah_kg
+      properties:
+        id:
+          type: string
+          description: Primary key / unique identifier
+          example: "PENYELAMATAN-2024-001234"
+        
+        tanggal_salur:
+          type: string
+          format: date
+          description: Tanggal penyaluran / rescue
+          example: "2024-03-15"
+        
+        tahun:
+          type: integer
+          description: Tahun (untuk indexing)
+          example: 2024
+        
+        bulan:
+          type: integer
+          description: Bulan (1-12, untuk indexing)
+          example: 3
+          minimum: 1
+          maximum: 12
+        
+        lembaga_id:
+          type: string
+          description: ID lembaga penyelamat
+          example: "LEMBAGA-001"
+        
+        lembaga_nama:
+          type: string
+          description: Nama lembaga penyelamat
+          example: "Yayasan Pangan Lestari Jakarta"
+        
+        jenis_lembaga:
+          type: string
+          description: Jenis lembaga (NGO, Pemerintah, Swasta, dll)
+          example: "NGO"
+        
+        provinsi_id:
+          type: string
+          description: ID provinsi
+          example: "31"
+        
+        provinsi_nama:
+          type: string
+          description: Nama provinsi
+          example: "DKI Jakarta"
+        
+        kabupaten_id:
+          type: string
+          description: ID kabupaten/kota
+          example: "3171"
+        
+        kabupaten_nama:
+          type: string
+          description: Nama kabupaten/kota
+          example: "Jakarta Pusat"
+        
+        produk_donasi:
+          type: string
+          description: Jenis produk yang diselamatkan
+          example: "Beras"
+        
+        jumlah_kg:
+          type: number
+          format: float
+          description: Jumlah dalam kilogram
+          example: 250.5
+        
+        keterangan:
+          type: string
+          description: Keterangan tambahan (optional)
+          example: "Dari pasar tradisional"
+
+    PenyaluranPanganRecord:
+      type: object
+      required:
+        - id
+        - tanggal_salur
+        - tahun
+        - bulan
+        - lembaga_id
+        - lembaga_nama
+        - provinsi_id
+        - provinsi_nama
+        - kabupaten_id
+        - kabupaten_nama
+        - produk_donasi
+        - jumlah_kg
+      properties:
+        id:
+          type: string
+          example: "PENYALURAN-2024-001234"
+        
+        tanggal_salur:
+          type: string
+          format: date
+          example: "2024-03-15"
+        
+        tahun:
+          type: integer
+          example: 2024
+        
+        bulan:
+          type: integer
+          example: 3
+          minimum: 1
+          maximum: 12
+        
+        lembaga_id:
+          type: string
+          description: ID lembaga penyalur
+          example: "LEMBAGA-001"
+        
+        lembaga_nama:
+          type: string
+          description: Nama lembaga penyalur
+          example: "Food Bank Indonesia"
+        
+        jenis_lembaga:
+          type: string
+          example: "NGO"
+        
+        provinsi_id:
+          type: string
+          example: "31"
+        
+        provinsi_nama:
+          type: string
+          example: "DKI Jakarta"
+        
+        kabupaten_id:
+          type: string
+          example: "3171"
+        
+        kabupaten_nama:
+          type: string
+          example: "Jakarta Pusat"
+        
+        produk_donasi:
+          type: string
+          description: Jenis produk yang disalurkan
+          example: "Beras"
+        
+        jumlah_kg:
+          type: number
+          format: float
+          example: 250.5
+
+    TransaksiMandiriRecord:
+      type: object
+      required:
+        - id
+        - tanggal_salur
+        - tahun
+        - bulan
+        - lembaga_penyedia_id
+        - lembaga_penyedia
+        - provinsi_id
+        - provinsi_nama
+        - kabupaten_id
+        - kabupaten_nama
+        - produk_donasi
+        - jumlah_kg
+      properties:
+        id:
+          type: string
+          example: "MANDIRI-2024-001234"
+        
+        tanggal_salur:
+          type: string
+          format: date
+          example: "2024-03-15"
+        
+        tahun:
+          type: integer
+          example: 2024
+        
+        bulan:
+          type: integer
+          example: 3
+          minimum: 1
+          maximum: 12
+        
+        lembaga_penyedia_id:
+          type: string
+          description: ID lembaga/donatur pemberi donasi mandiri
+          example: "DONATUR-001"
+        
+        lembaga_penyedia:
+          type: string
+          description: Nama lembaga/donatur
+          example: "PT. Pangan Sejahtera"
+        
+        provinsi_id:
+          type: string
+          example: "31"
+        
+        provinsi_nama:
+          type: string
+          example: "DKI Jakarta"
+        
+        kabupaten_id:
+          type: string
+          example: "3171"
+        
+        kabupaten_nama:
+          type: string
+          example: "Jakarta Pusat"
+        
+        produk_donasi:
+          type: string
+          example: "Minyak Goreng"
+        
+        jumlah_kg:
+          type: number
+          format: float
+          example: 100.0
+
+    PenerimaManfaatRecord:
+      type: object
+      required:
+        - id
+        - tanggal_salur
+        - tahun
+        - bulan
+        - lembaga_id
+        - lembaga_nama
+        - provinsi_id
+        - provinsi_nama
+        - kabupaten_id
+        - kabupaten_nama
+        - jumlah_penerima
+      properties:
+        id:
+          type: string
+          example: "PENERIMA-2024-001234"
+        
+        tanggal_salur:
+          type: string
+          format: date
+          example: "2024-03-15"
+        
+        tahun:
+          type: integer
+          example: 2024
+        
+        bulan:
+          type: integer
+          example: 3
+          minimum: 1
+          maximum: 12
+        
+        lembaga_id:
+          type: string
+          description: ID lembaga yang menyalurkan ke penerima manfaat
+          example: "LEMBAGA-001"
+        
+        lembaga_nama:
+          type: string
+          example: "Yayasan Pangan Lestari"
+        
+        jenis_lembaga:
+          type: string
+          example: "NGO"
+        
+        provinsi_id:
+          type: string
+          example: "31"
+        
+        provinsi_nama:
+          type: string
+          example: "DKI Jakarta"
+        
+        kabupaten_id:
+          type: string
+          example: "3171"
+        
+        kabupaten_nama:
+          type: string
+          example: "Jakarta Pusat"
+        
+        jumlah_penerima:
+          type: integer
+          description: Jumlah orang yang menerima manfaat
+          example: 150
+
+  responses:
+    UnauthorizedError:
+      description: API Key tidak valid atau tidak ada
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Unauthorized - Invalid API Key"
+              data:
+                type: object
+                nullable: true
+                example: null
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Internal server error"
+              data:
+                type: object
+                nullable: true
+                example: null

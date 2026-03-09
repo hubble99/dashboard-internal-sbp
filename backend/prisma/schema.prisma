@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // directUrl diperlukan untuk NeonDB: migrasi tidak bisa lewat PgBouncer pooler
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+
+// ─── Enums ───────────────────────────────────────────────────────
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+}
+
+// ─── Users ───────────────────────────────────────────────────────
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  auditLogs AuditLog[]
+
+  @@map("users")
+}
+
+// ─── Audit Logs ──────────────────────────────────────────────────
+// userId nullable untuk mencatat login gagal (user mungkin tidak ada)
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?     @map("user_id")
+  action    String   // LOGIN, LOGIN_FAILED, REFRESH_ALL, CREATE_USER
+  details   String?  // JSON string untuk metadata tambahan (email dicoba, jumlah record, dsb)
+  ipAddress String?  @map("ip_address")
+  timestamp DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
+
+// ─── System Metadata ─────────────────────────────────────────────
+model SystemMeta {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_meta")
+}
+
+// ─── Dimensi: Produk Donasi ──────────────────────────────────────
+model DimProdukDonasi {
+  id   Int    @id // ID dari API, tidak auto-increment
+  nama String
+
+  @@map("dim_produk_donasi")
+}
+
+// ─── Fact: Penyelamatan Pangan ───────────────────────────────────
+// produk_donasi berformat JSON: { "id_produk": jumlah_kg, ... }
+// jumlah_kg adalah total semua produk dalam satu transaksi
+model FactPenyelamatanPangan {
+  id             Int      @id @default(autoincrement())
+  tanggalSalur   DateTime @map("tanggal_salur")
+  tahun          Int
+  bulan          Int
+  provinsiId     String   @map("provinsi_id")   // Kode BPS sebagai string, misal "31"
+  provinsiNama   String   @map("provinsi_nama")
+  kabupatenId    String   @map("kabupaten_id")  // Kode BPS sebagai string, misal "3171"
+  kabupatenNama  String   @map("kabupaten_nama")
+  lembagaId      String   @map("lembaga_id")    // ID internal developer
+  lembagaNama    String   @map("lembaga_nama")
+  jenisLembaga   String   @map("jenis_lembaga")
+  produkDonasi   Json     @map("produk_donasi") // { "id_produk": jumlah_kg }
+  jumlahKg       Float    @map("jumlah_kg")     // Total semua produk
+
+  @@index([tanggalSalur])
+  @@index([provinsiId])
+  @@index([kabupatenId])
+  @@index([lembagaNama])
+  @@index([jenisLembaga])
+  @@index([tahun, bulan])
+  @@map("fact_penyelamatan_pangan")
+}
+
+// ─── Fact: Penyaluran Pangan ─────────────────────────────────────
+// Menggabungkan: penyaluran Penggiat + Transaksi Mandiri + Penerima Manfaat
+// jenis_lembaga: "Penggiat" atau "Transaksi Mandiri"
+// jenis_lembaga_penyedia: turunan Transaksi Mandiri (misal "Retail", "HoReCa"), "-" jika Penggiat
+// produk_donasi berformat JSON: { "id_produk": jumlah_kg, ... }
+model FactPenyaluranPangan {
+  id                    Int      @id @default(autoincrement())
+  tanggalSalur          DateTime @map("tanggal_salur")
+  tahun                 Int
+  bulan                 Int
+  provinsiId            String   @map("provinsi_id")
+  provinsiNama          String   @map("provinsi_nama")
+  kabupatenId           String   @map("kabupaten_id")
+  kabupatenNama         String   @map("kabupaten_nama")
+  lembagaId             String   @map("lembaga_id")
+  lembagaNama           String   @map("lembaga_nama")
+  jenisLembaga          String   @map("jenis_lembaga")           // "Penggiat" | "Transaksi Mandiri"
+  jenisLembagaPenyedia  String   @map("jenis_lembaga_penyedia")  // "-" jika Penggiat
+  produkDonasi          Json     @map("produk_donasi")
+  jumlahKg              Float    @map("jumlah_kg")
+  jumlahPenerimaManfaat Int      @map("jumlah_penerima_manfaat")
+
+  @@index([tanggalSalur])
+  @@index([provinsiId])
+  @@index([kabupatenId])
+  @@index([lembagaNama])
+  @@index([jenisLembaga])
+  @@index([jenisLembagaPenyedia])
+  @@index([tahun, bulan])
+  @@map("fact_penyaluran_pangan")
+}
+
+// ─── Fact: Rasio Lembaga ─────────────────────────────────────────
+// Data rasio penyelamatan vs penyaluran per lembaga per bulan
+// Diperoleh langsung dari API, tidak dihitung dari tabel lain
+model FactRasioLembaga {
+  id                Int    @id @default(autoincrement())
+  tahun             Int
+  bulan             Int    // 1-12 (dikonversi dari String di API ke Int di backend)
+  lembagaId         String @map("lembaga_id")
+  lembagaNama       String @map("lembaga_nama")
+  jenisLembaga      String @map("jenis_lembaga")
+  totalPenyelamatan Float  @map("total_penyelamatan")
+  totalPenyaluran   Float  @map("total_penyaluran")
+  rasioPenyaluran   Float  @map("rasio_penyaluran")
+
+  @@index([tahun, bulan])
+  @@index([lembagaNama])
+  @@index([jenisLembaga])
+  @@map("fact_rasio_lembaga")
+}

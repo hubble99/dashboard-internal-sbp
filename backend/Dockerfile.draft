@@ -1,0 +1,41 @@
+# Use Node.js as the base image
+FROM node:20-slim AS builder
+
+# Set the working directory
+WORKDIR /app
+
+# Copy package files and install dependencies
+COPY package*.json ./
+COPY prisma ./prisma/
+
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Use a smaller image for production
+FROM node:20-slim AS runner
+
+WORKDIR /app
+
+# Copy production dependencies and built files
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=8080
+
+# Expose the port
+EXPOSE 8080
+
+# Run the application
+CMD ["npm", "start"]

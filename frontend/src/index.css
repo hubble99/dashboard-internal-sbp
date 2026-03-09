@@ -1,0 +1,204 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+/* ─── CSS Reset & Base ────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── Theme Variables ──────────────────────────────── */
+/* CSS custom properties will be set dynamically by ThemeContext */
+:root {
+  /* These will be overridden by theme */
+  --bg-primary: #F8FAF9;
+  --bg-secondary: #F1F5F3;
+  --bg-elevated: #FFFFFF;
+  --bg-card: #FFFFFF;
+
+  --brand-primary: #166534;
+  --brand-primary-hover: #14532D;
+  --brand-accent: #F97316;
+  --brand-accent-hover: #EA580C;
+
+  --text-primary: #0F172A;
+  --text-secondary: #334155;
+  --text-muted: #64748B;
+  --text-inverse: #FFFFFF;
+
+  --border-subtle: rgba(0, 0, 0, 0.05);
+  --border-default: rgba(0, 0, 0, 0.1);
+  --border-strong: rgba(0, 0, 0, 0.2);
+
+  --color-success: #166534;
+  --color-warning: #F97316;
+  --color-danger: #DC2626;
+  --color-info: #0284C7;
+
+  --chart-primary: #166534;
+  --chart-secondary: #F97316;
+  --chart-grid: rgba(0, 0, 0, 0.08);
+  --chart-tooltip-bg: #FFFFFF;
+  --chart-tooltip-text: #0F172A;
+
+  --font-primary: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+  --font-secondary: 'Inter', sans-serif;
+  --font-size-kpi: 1.875rem;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-card: 0.5rem;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  --padding-card: 1.5rem;
+  --padding-section: 2rem;
+
+  --transition-default: 200ms ease-in-out;
+  --transition-fast: 100ms ease-in-out;
+  --transition-slow: 300ms ease-in-out;
+}
+
+
+body {
+  font-family: var(--font-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  transition: background-color var(--transition-default), color var(--transition-default);
+}
+
+
+#root {
+  min-height: 100vh;
+}
+
+/* ─── Scrollbar ───────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+body.light-theme ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+body.light-theme ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+body.dark-theme ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+body.dark-theme ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ─── Ant Design Overrides ────────────────────────── */
+.ant-card {
+  background: var(--bg-card) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: var(--shadow-card) !important;
+  border: 1px solid var(--border-subtle) !important;
+  transition: box-shadow var(--transition-default), transform var(--transition-default);
+}
+
+.ant-card:hover {
+  box-shadow: var(--shadow-md) !important;
+}
+
+.ant-table-wrapper {
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  overflow: hidden;
+}
+
+.ant-table-thead>tr>th {
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ant-statistic-content-value {
+  font-family: 'Inter', sans-serif !important;
+}
+
+.ant-select-selector {
+  border-radius: var(--radius-sm) !important;
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-primary) !important;
+}
+
+body.dark-theme .ant-select-selector {
+  border-color: var(--border-strong) !important;
+}
+
+.ant-select-selection-placeholder {
+  color: var(--text-muted) !important;
+}
+
+.ant-select-arrow {
+  color: var(--text-secondary) !important;
+}
+
+.ant-btn {
+  border-radius: var(--radius-sm) !important;
+  transition: all var(--transition-default);
+}
+
+body.dark-theme .ant-btn:not(.ant-btn-primary) {
+  background: var(--bg-secondary) !important;
+  border-color: var(--border-strong) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ─── Responsive ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .app-content {
+    margin: 12px !important;
+  }
+
+  .refresh-timestamp {
+    display: none;
+  }
+}
+
+/* ─── Animations ──────────────────────────────────── */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ant-card {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* ─── Selection ───────────────────────────────────── */
+::selection {
+  background: rgba(37, 99, 235, 0.2);
+  color: inherit;
+}

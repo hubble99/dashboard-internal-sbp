@@ -18,17 +18,22 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// Redirect to login on 401
+// Redirect to login on 401 — but NOT if we're already on login page
 api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = '/login';
+            const isLoginPage = window.location.pathname === '/login';
+            const isLoginRequest = error.config?.url?.includes('/auth/login');
+            if (!isLoginPage && !isLoginRequest) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login';
+            }
         }
         return Promise.reject(error);
     }
 );
+
 
 export default api;

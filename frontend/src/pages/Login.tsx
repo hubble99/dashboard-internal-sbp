@@ -3,7 +3,6 @@ import { Card, Form, Input, Button, Typography, message, Space } from 'antd';
 import { LockOutlined, MailOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import logoSBP from '../../assets/Logo Stop Boros Pangan.png';
 
 
 const { Title, Text } = Typography;
@@ -46,7 +45,7 @@ const Login: React.FC = () => {
                 <Space direction="vertical" size="large" style={{ width: '100%', textAlign: 'center' }}>
                     <div>
                         <img
-                            src={logoSBP}
+                            src="/logo-sbp.png"
                             alt="Logo Stop Boros Pangan"
                             style={{ width: 120, marginBottom: 12, objectFit: 'contain' }}
                         />

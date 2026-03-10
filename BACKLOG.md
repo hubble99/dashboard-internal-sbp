@@ -152,13 +152,18 @@
 **Deskripsi**: Badge di header menunjukkan jumlah lembaga dengan rasio < 80%.  
 **Catatan**: Target 80% sudah dikonfirmasi seragam untuk semua lembaga.
 
+### V3-G. Migrasi Infrastruktur ke VPS (Performance)
+
+**Deskripsi**: Memindahkan backend (`API`) dan Database (`PostgreSQL`) ke VPS lokal terdekat (misal: Jakarta/Singapura) menggunakan `docker-compose.yml`.  
+**Tujuan**: Mengurangi latency secara dramatis (dari ~500-800ms menjadi ~50ms) dan mengatasi masalah *auto-pause* yang terjadi pada *free-tier* serverless database.
+
 ---
 
 ## 🔧 Panduan Melanjutkan di Sesi Baru
 
 Ketika memulai sesi diskusi berikutnya, sampaikan ke AI:
 
-```
+```text
 Saya ingin melanjutkan pengembangan Dashboard SBP.
 Codebase ada di: d:\Badan Pangan Nasional\Aplikasi Stop Boros Pangan\Dashboard SBP\dashboard-v3\
 
@@ -177,5 +182,5 @@ Saya ingin mendiskusikan / mengimplementasikan: [sebutkan fitur yang ingin dibah
 |---|---|---|
 | v1 | Sebelum Maret 2026 | Dashboard awal: 5 halaman, 4 tabel, 4 endpoint SBP |
 | v2 | Maret 2026 | Refaktor besar: 3 halaman, skema JSONB, tambah penerima manfaat & filter produk |
-| v2.1 | Maret 2026 | Pre-deploy: Export Excel, RBAC (SUPER_ADMIN/ADMIN), Audit Trail, Halaman Profil |
-| v3 | TBD | Peta interaktif, prediksi, fitur lanjutan |
+| v2.1 | Maret 2026 | Pre-deploy: Export Excel, RBAC (SUPER_ADMIN/ADMIN), Audit Trail, Profil, Vercel/Railway Deploy |
+| v3 | TBD | Migrasi VPS, Peta interaktif, prediksi, fitur lanjutan |
